@@ -1,0 +1,46 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% has to be last package
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\renewcommand{\familydefault}{\sfdefault} % change font family to sans serif
+
+\begin{document}
+% \pagestyle{empty}
+
+\title{\Large Software Analytics 2016 - Assignment 1 \\\vspace{0.7cm} \huge Bug Description}
+\date{\today}
+\author{Jesper Findahl}
+\maketitle
+\thispagestyle{empty}
+
+\pagenumbering{arabic}
+
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=0.6\textwidth]{img/trellis.png}
+% 	\caption{Trellis - visualizes an evolution of the chain in time}
+% \end{figure}
+
+The bug I intend to fix is from the open-source Java framework Dropwizard\footnote{\url{https://github.com/dropwizard/dropwizard}} for building RESTful web services. The issue\footnote{\url{https://github.com/dropwizard/dropwizard/issues/1910}} is about a custom Dropwizard Java annotation not being recognized in all cases.
+
+Specifically it is about the annotation \texttt{@UnitOfWork}\footnote{\url{http://www.dropwizard.io/0.7.1/docs/manual/hibernate.html#transactional-resource-methods}} which can be added to resource methods. Resources are classes that model the actual RESTful resources of the application, in other words they make up the application's API. The annotation itself provides an easy way for the developer to specify a set of database operations that should be carried out together - a transaction. This is a design pattern called unit of work\footnote{\url{https://docs.jboss.org/hibernate/orm/3.3/reference/en/html/transactions.html#transactions-basics-uow}} and is related to the Object/Relational Mapping framework Hibernate\footnote{\url{http://hibernate.org/orm/}}, which is integrated into Dropwizard. In case an exceptions is thrown and all the operations within the \emph{unit of work} cannot be completed, the defined database operations are automatically rolled back.
+
+The issue with the annotation is that when adding the \texttt{@UnitOfWork} annotation to a sub-resource it is not registered properly and a Hibernate session is never opened, meaning the guarantees of \emph{unit of work} are not fulfilled.
+
+The Dropwizard team has given some workaround solution to the bug, however, the bug itself has not yet been fixed nor been assigned to any developer or milestone.
+
+\end{document}
