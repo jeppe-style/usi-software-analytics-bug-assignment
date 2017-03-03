@@ -34,12 +34,13 @@
 % 	\caption{Trellis - visualizes an evolution of the chain in time}
 % \end{figure}
 
+After a deeper analysis of the bug I was able to locate the class where the \texttt{@UnitOfWork} annotations are registered by replicating the bug.
 
-\begin{itemize}
-  \item \href{https://github.com/jeppe-style/dropwizard/blob/master/CONTRIBUTING.md}{Contributing/Development}
-\end{itemize}
+The \textt{@UnitOfWork} is a custom annotation created by the DropWizard framework which builds on top of Jersey\footnote{\url{https://jersey.java.net}}. The \texttt{@UnitOfWork} is a runtime \footnote{\url{https://github.com/dropwizard/dropwizard/blob/7295c5faf42840325c161cc82ad4ed1db2bf8419/dropwizard-hibernate/src/main/java/io/dropwizard/hibernate/UnitOfWork.java#L22}} annotation, meaning that it is possible to read this annotation also during runtime. This means that by registering the custom \texttt{ApplicationEventListener}\footnote{\url{https://jersey.java.net/documentation/latest/monitoring_tracing.html#d0e15957}} \texttt{UnitOfWorkApplicationListener}\footnote{\url{https://github.com/dropwizard/dropwizard/blob/7295c5faf42840325c161cc82ad4ed1db2bf8419/dropwizard-hibernate/src/main/java/io/dropwizard/hibernate/UnitOfWorkApplicationListener.java#L28}} the listener receives certain events during the application lifecycle. Specifically the listener is interested to know when the app initialization has finished so that it can get all the resources, and register which methods has the \texttt{@UnitOfWork} annotation.
 
+Once the application has been initialized and a requests is received (calling \texttt{onRequest}) a new \texttt{UnitOfWorkEventListener}\footnote{\url{https://github.com/dropwizard/dropwizard/blob/7295c5faf42840325c161cc82ad4ed1db2bf8419/dropwizard-hibernate/src/main/java/io/dropwizard/hibernate/UnitOfWorkApplicationListener.java#L60}} is instantiated. This listener implements the \texttt{RequestEventListener} which has receives the \texttt{RequestEvent}. Now since the \texttt{UnitOfWorkApplicationListener} has registered the methods with the \texttt{@UnitOfWork} annotation it simply makes a lookup. If the method has the annotation it calls the \texttt{UnitOfWorkAspect}\footnote{\url{https://github.com/dropwizard/dropwizard/blob/cee6955b1e9f8e31f77f4958416849d0e18b0c17/dropwizard-hibernate/src/main/java/io/dropwizard/hibernate/UnitOfWorkAspect.java}} to handle the different lifecycle events of the request.
 
+From this I conclude that the main problem lies in registering the methods with the \texttt{@UnitOfWork} annotation properly, which means that only the class \texttt{UnitOfWorkApplicationListener} should be affected. For replicating the bug I have created a new test class, \texttt{JerseyIntegrationSubResourceTest}\footnote{\url{https://github.com/jeppe-style/dropwizard/commit/44fffd6147db2685efad22cc0fd2fdd22abcc620#diff-b4fb6c7cc518c0c5f122b74ff98544ccR65}} that for now fails.
 
 
 \end{document}
