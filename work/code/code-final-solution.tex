@@ -1,0 +1,64 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{dirtytalk}
+\usepackage[outputdir=out]{minted}
+\usepackage{float}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% has to be last package
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\renewcommand{\familydefault}{\sfdefault} % change font family to sans serif
+
+\begin{document}
+
+\begin{minted}[linenos]{java}
+@Override
+public void onEvent(ApplicationEvent event) {
+
+   if (event.getType() == ApplicationEvent.Type.INITIALIZATION_APP_FINISHED) {
+       for (Resource resource : event.getResourceModel().getResources()) {
+           for (ResourceMethod method : resource.getAllMethods()) {
+               registerUnitOfWorkAnnotations(method);
+           }
+
+           for (Resource childResource : resource.getChildResources()) {
+               for (ResourceMethod method : childResource.getAllMethods()) {
+                   registerUnitOfWorkAnnotations(method);
+               }
+              // BUGFIX
+               registerResourceLocatorUnitOfWorkAnnotations(
+               childResource.getResourceLocator()
+               );
+           }
+       }
+   }
+}
+
+...
+
+private void registerResourceLocatorUnitOfWorkAnnotations(ResourceMethod method) {
+   if (method.getType() != ResourceMethod.JaxrsType.SUB_RESOURCE_LOCATOR)
+       return;
+
+   for (Method responseMethod : method.getInvocable().getRawResponseType().getMethods()) {
+
+       UnitOfWork annotation = responseMethod.getAnnotation(UnitOfWork.class);
+
+       if (annotation != null) {
+           this.methodMap.put(responseMethod, annotation);
+       }
+   }
+}
+\end{minted}
+\end{document}

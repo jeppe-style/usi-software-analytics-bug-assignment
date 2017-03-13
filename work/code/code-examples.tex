@@ -1,0 +1,59 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{dirtytalk}
+\usepackage[outputdir=out]{minted}
+\usepackage{float}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% has to be last package
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\renewcommand{\familydefault}{\sfdefault} % change font family to sans serif
+
+\begin{document}
+
+\begin{minted}[linenos]{java}
+@Path("/people")
+@Produces(MediaType.APPLICATION_JSON)
+public class PersonResource {
+
+    private final PersonDAO dao;
+
+    public PersonResource(PersonDAO dao) {
+        this.dao = dao;
+    }
+
+    @Path("/{name}")
+    public SubResource subResource() {
+        return new SubResource();
+    }
+
+    public class SubResource {
+
+        @GET
+        @UnitOfWork(readOnly = true)
+        public Optional<Person> find(@PathParam("name") String name) {
+            return dao.findByName(name);
+        }
+
+        @PUT
+        @UnitOfWork
+        public void save(Person person) {
+            dao.persist(person);
+        }
+
+    }
+
+}
+\end{minted}
+\end{document}

@@ -1,0 +1,50 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{dirtytalk}
+\usepackage[outputdir=out]{minted}
+\usepackage{float}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% has to be last package
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\renewcommand{\familydefault}{\sfdefault} % change font family to sans serif
+
+\begin{document}
+
+\begin{minted}[linenos]{java}
+@Override
+public void onEvent(RequestEvent event) {
+
+  final RequestEvent.Type eventType = event.getType();
+  if (eventType == RequestEvent.Type.RESOURCE_METHOD_START) {
+
+    // START BUGFIX
+    Method method = event.getUriInfo().getMatchedResourceMethod()
+    .getInvocable().getDefinitionMethod();
+
+    UnitOfWork unitOfWork;
+    if (methodMap.containsKey(method)) {
+        unitOfWork = methodMap.get(method);
+    } else {
+        unitOfWork = method.getAnnotation(UnitOfWork.class);
+        if (unitOfWork != null) {
+            methodMap.put(method, unitOfWork);
+        }
+    }
+    // END BUGFIX
+  ...
+  }
+}
+\end{minted}
+\end{document}
